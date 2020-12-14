@@ -70,7 +70,7 @@ process step0 {
 
   script:
   """
-  gzip -d ${bedgz}
+  gzip -cd ${bedgz} > "hg38.1kb.baits.bed"
   """
 }
 
