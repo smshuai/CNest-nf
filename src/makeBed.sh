@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-chromSize=./input/hg38.chrom.sizes
+chromSize=../data/hg38.chrom.sizes
 winSize=1000
-blackList=./input/hg38.ENCODE.blacklist.ENCFF356LFX.bed
-gapList=./input/hg38.gaps
-out=./hg38.1kb.baits.bed 
+blackList=../data/hg38.ENCODE.blacklist.ENCFF356LFX.bed
+gapList=../data/hg38.gaps
+out=../data/hg38.1kb.baits.bed 
 
 # make genome wide baits
 bedtools makewindows -g ${chromSize} -w ${winSize} > tmp1.bed

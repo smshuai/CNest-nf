@@ -27,32 +27,50 @@ if (params.cram) {
   }
 if (params.ref) ch_ref = Channel.value(file(params.ref))
 
-if (params.makeBed) {
-  params.chromSize = "$baseDir/src/makeBed/input/hg38.chrom.sizes"
-  params.blackList = "$baseDir/src/makeBed/input/hg38.ENCODE.blacklist.ENCFF356LFX.bed"
-  params.gapList = "$baseDir/src/makeBed/input/hg38.gaps"
-}
+// if (params.makeBed) {
+//   params.chromSize = Channel.value(file("$baseDir/data/hg38.chrom.sizes"))
+//   params.blackList = Channel.value(file("$baseDir/data/hg38.ENCODE.blacklist.ENCFF356LFX.bed"))
+//   params.gapList = Channel.value(file("$baseDir/data/hg38.gaps"))
+// }
 
 // Generate reference file
+// process step0 {
+//   tag "step0"
+//   echo true
+//   publishDir "results", mode: 'copy'
+
+//   input:
+//   path chromSize from params.chromSize
+//   path blackList from params.blackList
+//   path gapList from params.gapList
+
+//   output:
+//   path "index.bed" into ch_bed
+
+//   """
+//   # make genome wide baits
+//   bedtools makewindows -g ${chromSize} -w 1000 > tmp1.bed
+//   # remove black list and gap regions
+//   # If the bait has >0 bp in blacklist or gap regions, the whole bait is removed
+//   bedtools subtract -a tmp1.bed -b ${blackList} -A > tmp2.bed
+//   bedtools subtract -a tmp2.bed -b ${gapList} -A > index.bed 
+//   """
+// }
+
+ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
 process step0 {
-  tag "step0"
+  tag "${sample}"
   echo true
 
   input:
-  path chromSize from params.chromSize
-  path blackList from params.blackList
-  path gapList from params.gapList
+  file(bedgz) from ch_bedgz
 
   output:
-  path "index.bed" into ch_bed
+  file("hg38.1kb.baits.bed") into ch_bed
 
+  script:
   """
-  # make genome wide baits
-  bedtools makewindows -g ${chromSize} -w 1000 > tmp1.bed
-  # remove black list and gap regions
-  # If the bait has >0 bp in blacklist or gap regions, the whole bait is removed
-  bedtools subtract -a tmp1.bed -b ${blackList} -A > tmp2.bed
-  bedtools subtract -a tmp2.bed -b ${gapList} -A > index.bed 
+  gzip -d ${bedgz}
   """
 }
 
