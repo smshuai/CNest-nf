@@ -5,7 +5,7 @@ def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --project ukb --bed index.bed --sample test --cram test.cram --ref ./ref/
+    nextflow run main.nf --project test --sample test_spl --cram test.cram --crami test.crami --ref ./ref/
     Mandatory arguments:
       --fastq_list                  [file] A comma seperated file with all the fastq files locations
                                     A header is expected, and 3 columns that define the following:
@@ -21,10 +21,8 @@ def helpMessage() {
 }
 
 if (params.bed) ch_bed = Channel.value(file(params.bed))
-if (params.cram) {
-  ch_cram = Channel.value(file(params.cram))
-  ch_crai = Channel.value(file(params.cram + '.crai'))
-  }
+if (params.cram) ch_cram = Channel.value(file(params.cram))
+if (params.crami) ch_crai = Channel.value(file(params.crami))
 if (params.ref) ch_ref = Channel.value(file(params.ref))
 
 // if (params.makeBed) {
