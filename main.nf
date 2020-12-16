@@ -13,6 +13,8 @@ def helpMessage() {
                       name,cram,crai
                       test,test.cram,test.cram.crai
       --ref           [file] Path for the genome reference folder. Used for CRAM decoding
+    Optional arguments:
+      --test          [logic] true/false
 
     """.stripIndent()
 }
@@ -24,6 +26,10 @@ if (params.design) {
     .splitCsv(sep: ',', skip: 1)
     .map { name, file_path, index_path -> [ name, file(file_path), file(index_path) ] }
     .set { ch_files_sets }
+}
+// In test mode, a max of 10 samples are used
+if (params.test) {
+  ch_files_sets = ch_files_sets.take(10)
 }
 
 ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
@@ -41,14 +47,19 @@ process step0 {
   !params.bed
 
   script:
-  """
-  gzip -cd ${bedgz} > "hg38.1kb.baits.bed"
-  """
+  if (params.test)
+    """
+    gzip -cd ${bedgz} | head -1000 > "hg38.1kb.baits.bed"
+    """
+  else
+    """
+    gzip -cd ${bedgz} > "hg38.1kb.baits.bed"
+    """
 }
 
 // Step1 create work directory
 process step1 {
-  tag "${sample}"
+  tag "${project}"
   echo true
 
   input: 
@@ -78,8 +89,15 @@ process step2 {
   file ("${params.project}") into ch_project2
 
   script:
-  """
-  export REF_PATH="./reference/%2s/%2s/%s"
-  cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path}
-  """
+  if (params.test)
+    """
+    export REF_PATH="./reference/%2s/%2s/%s"
+    cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --debug
+    """
+  else
+    """
+    ls -lL
+    export REF_PATH="./reference/%2s/%2s/%s"
+    cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path}    
+    """
 }
