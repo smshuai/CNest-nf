@@ -91,12 +91,12 @@ process step2 {
   script:
   if (params.test)
     """
+    ls -lL
     export REF_PATH="./reference/%2s/%2s/%s"
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --debug
     """
   else
     """
-    ls -lL
     export REF_PATH="./reference/%2s/%2s/%s"
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path}    
     """
