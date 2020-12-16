@@ -5,55 +5,26 @@ def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --project test --sample test_spl --cram test.cram --crami test.crami --ref ./ref/
+    nextflow run main.nf --project test --design design_file.csv --ref ./ref/
     Mandatory arguments:
-      --fastq_list                  [file] A comma seperated file with all the fastq files locations
-                                    A header is expected, and 3 columns that define the following:
-                                    - accession number, identifier for fastq file pair
-                                    - link (ftp, https) to the fastq 1
-                                    - link (ftp, https) to the fastq 2
-                                    
-                                    A file could look like this:
-                                    accession,fastq_1,fastq_2
-                                    ERR908503,ftp://ERR908503_1.fastq.gz,ftp://ERR908503_2.fastq.gz
+      --project       [string] Name of the project
+      --design        [file] A csv file with sample name, CRAM path and CRAI path
+                      A file could look like this:
+                      name,cram,crai
+                      test,test.cram,test.cram.crai
+      --ref           [file] Path for the genome reference folder. Used for CRAM decoding
 
     """.stripIndent()
 }
 
 if (params.bed) ch_bed = Channel.value(file(params.bed))
-if (params.cram) ch_cram = Channel.value(file(params.cram))
-if (params.crami) ch_crai = Channel.value(file(params.crami))
 if (params.ref) ch_ref = Channel.value(file(params.ref))
-
-// if (params.makeBed) {
-//   params.chromSize = Channel.value(file("$baseDir/data/hg38.chrom.sizes"))
-//   params.blackList = Channel.value(file("$baseDir/data/hg38.ENCODE.blacklist.ENCFF356LFX.bed"))
-//   params.gapList = Channel.value(file("$baseDir/data/hg38.gaps"))
-// }
-
-// Generate reference file
-// process step0 {
-//   tag "step0"
-//   echo true
-//   publishDir "results", mode: 'copy'
-
-//   input:
-//   path chromSize from params.chromSize
-//   path blackList from params.blackList
-//   path gapList from params.gapList
-
-//   output:
-//   path "index.bed" into ch_bed
-
-//   """
-//   # make genome wide baits
-//   bedtools makewindows -g ${chromSize} -w 1000 > tmp1.bed
-//   # remove black list and gap regions
-//   # If the bait has >0 bp in blacklist or gap regions, the whole bait is removed
-//   bedtools subtract -a tmp1.bed -b ${blackList} -A > tmp2.bed
-//   bedtools subtract -a tmp2.bed -b ${gapList} -A > index.bed 
-//   """
-// }
+if (params.design) {
+  Channel.fromPath(params.design)
+    .splitCsv(sep: ',', skip: 1)
+    .map { name, file_path, index_path -> [ name, file(file_path), file(index_path) ] }
+    .set { ch_files_sets }
+}
 
 ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
 process step0 {
@@ -65,6 +36,9 @@ process step0 {
 
   output:
   file("hg38.1kb.baits.bed") into ch_bed
+
+  when:
+  !params.bed
 
   script:
   """
@@ -85,35 +59,27 @@ process step1 {
 
   script:
   """
-  mv ./${bed} /input_location/
   cnest.py step1 --project ${params.project} --bed ${bed}
-  mv /output_location/${params.project} .
   """
 }
 
-// Analyze each CRAM
+// Re-usable process skeleton that performs a simple operation, listing files
 process step2 {
-  tag "${sample}"
+  tag "id:${name}-file:${file_path}-index:${index_path}"
   echo true
-  publishDir "results", mode: 'copy'
+  publishDir "results/", mode: "copy"
 
-
-  input: 
-  file(project) from ch_project
-  file(cram) from ch_cram
-  file(crai) from ch_crai
+  input:
+  set val(name), file(file_path), file(index_path) from ch_files_sets
   file("reference") from ch_ref
+  file(project) from ch_project
 
-  output: 
+  output:
   file ("${params.project}") into ch_project2
-
 
   script:
   """
-    export REF_PATH="./reference/%2s/%2s/%s"
-    mv ${cram} ${crai}  /input_location/
-    mv ${params.project} /output_location/
-    cnest.py step2 --project ${params.project} --sample ${params.sample} --input ${cram}
-    mv /output_location/${params.project} .
+  export REF_PATH="./reference/%2s/%2s/%s"
+  cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path}
   """
 }
