@@ -13,4 +13,4 @@ then
   rm -r ./work/
 fi
 
-nextflow run ../main.nf --test --project test_proj --design design.csv  --ref $ref_path 
+nextflow run ../main.nf --project test_proj --design design.csv  --ref $ref_path 

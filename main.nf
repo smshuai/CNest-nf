@@ -61,7 +61,6 @@ process step0 {
 process step1 {
   tag "${params.project}"
   echo true
-  // publishDir "results/", mode: "copy"
 
   input: 
   file(bed) from ch_bed
@@ -75,24 +74,22 @@ process step1 {
   """
 }
 
-// Duplicate the project directory and associated index files
-// ch_project.into { ch_proj_step2; ch_proj_step3 }
-
 // Re-usable process skeleton that performs a simple operation, listing files
 process step2 {
   tag "id:${name}-file:${file_path}-index:${index_path}"
+  publishDir "results/", mode: "copy"
   errorStrategy 'ignore'
   echo true
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
-  path "genome.fa" from ch_ref
-  path project from ch_proj1
+  file("genome.fa") from ch_ref
+  file(project) from ch_proj1
 
   output:
-  // path "${params.project}/bin/$name" into ch_bin
-  path "${params.project}" into ch_proj2
-  val true into ch_done_step2
+  path "${params.project}/bin/$name" into ch_bin
+  // path "${params.project}" into ch_proj2
+  // val true into ch_done_step2
 
   script:
   if (params.test)
@@ -104,25 +101,26 @@ process step2 {
   else
     """
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
+    ls -lLR
+    df -h
     """
 }
 
-process step3 {
-  tag "${params.project}"
-  echo true
-  publishDir "results/", mode: "copy"
+// process step3 {
+//   tag "${params.project}"
+//   echo true
+//   publishDir "results/", mode: "copy"
 
-  input:
-  val flag from ch_done_step2.collect()
-  path project from ch_proj2.first()
-  // path "${params.project}/bin/*" from ch_bin.collect()
+//   input:
+//   val flag from ch_done_step2.collect()
+//   path project from ch_proj2.first()
   
-  output:
-  path "${params.project}" into ch_proj3
+//   output:
+//   path "${params.project}" into ch_proj3
 
-  script:
-  """
-    ls -lLR
-    cnest.py step3 --project ${params.project}
-  """
-}
+//   script:
+//   """
+//     ls -lLR
+//     cnest.py step3 --project ${params.project}
+//   """
+// }
