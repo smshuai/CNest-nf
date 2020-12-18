@@ -14,7 +14,7 @@ def helpMessage() {
                       test,test.cram,test.cram.crai
       --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
     Optional arguments:
-      --test          [logic] true/false
+      --test          [flag] test mode
 
     """.stripIndent()
 }
@@ -61,45 +61,67 @@ process step0 {
 process step1 {
   tag "${params.project}"
   echo true
-  
+  publishDir "results/", mode: "copy"
+
   input: 
   file(bed) from ch_bed
 
   output: 
-  file ("${params.project}") into ch_project
-
+  file ("${params.project}") into ch_proj1
+  
   script:
   """
   cnest.py step1 --project ${params.project} --bed ${bed}
   """
 }
 
+// Duplicate the project directory and associated index files
+// ch_project.into { ch_proj_step2; ch_proj_step3 }
+
 // Re-usable process skeleton that performs a simple operation, listing files
 process step2 {
   tag "id:${name}-file:${file_path}-index:${index_path}"
   echo true
-  publishDir "results/", mode: "copy"
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
-  file("genome.fa") from ch_ref
-  file(project) from ch_project
+  path "genome.fa" from ch_ref
+  path project from ch_proj1
 
   output:
-  file ("${params.project}") into ch_project2
+  // path "${params.project}/bin/$name" into ch_bin
+  path "${params.project}" into ch_proj2
+  val true into ch_done_step2
 
   script:
   if (params.test)
     """
-    ls -lL
-    export REF_PATH="./reference/%2s/%2s/%s"
+    ls -lLR
     cnest.py --debug step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
     df -h
     """
   else
     """
-    export REF_PATH="./reference/%2s/%2s/%s"
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
-    df -h
     """
+}
+
+process step3 {
+  tag "${params.project}"
+  echo true
+  publishDir "results/", mode: "copy"
+
+  input:
+  val flag from ch_done_step2.collect()
+  path project from ch_proj2.first()
+  // path "${params.project}/bin/*" from ch_bin.collect()
+  
+  output:
+  path "${params.project}" into ch_proj3
+
+  script:
+  """
+    ls -lLR
+    cnest.py step3 --project ${params.project}
+  """
 }
