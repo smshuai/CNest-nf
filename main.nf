@@ -12,7 +12,7 @@ def helpMessage() {
                       A file could look like this:
                       name,cram,crai
                       test,test.cram,test.cram.crai
-      --ref           [file] Path for the genome reference folder. Used for CRAM decoding
+      --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
     Optional arguments:
       --test          [logic] true/false
 
@@ -34,7 +34,7 @@ if (params.test) {
 
 ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
 process step0 {
-  tag "${sample}"
+  tag "${params.project}"
   echo true
 
   input:
@@ -59,9 +59,9 @@ process step0 {
 
 // Step1 create work directory
 process step1 {
-  tag "${project}"
+  tag "${params.project}"
   echo true
-
+  
   input: 
   file(bed) from ch_bed
 
@@ -82,7 +82,7 @@ process step2 {
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
-  file("reference") from ch_ref
+  file("genome.fa") from ch_ref
   file(project) from ch_project
 
   output:
@@ -93,11 +93,13 @@ process step2 {
     """
     ls -lL
     export REF_PATH="./reference/%2s/%2s/%s"
-    cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --debug
+    cnest.py --debug step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
+    df -h
     """
   else
     """
     export REF_PATH="./reference/%2s/%2s/%s"
-    cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path}    
+    cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
+    df -h
     """
 }
