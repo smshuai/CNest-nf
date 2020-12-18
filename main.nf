@@ -61,7 +61,7 @@ process step0 {
 process step1 {
   tag "${params.project}"
   echo true
-  publishDir "results/", mode: "copy"
+  // publishDir "results/", mode: "copy"
 
   input: 
   file(bed) from ch_bed
@@ -81,6 +81,7 @@ process step1 {
 // Re-usable process skeleton that performs a simple operation, listing files
 process step2 {
   tag "id:${name}-file:${file_path}-index:${index_path}"
+  errorStrategy 'ignore'
   echo true
 
   input:
