@@ -77,9 +77,9 @@ process step1 {
 process step2 {
   tag "id:${name}-file:${file_path}-index:${index_path}"
   publishDir "results/", mode: "copy"
-  errorStrategy 'ignore'
+  errorStrategy = { task.exitStatus in [403, 401] ? 'ignore' : 'terminate' }
   echo true
-  maxForks 24
+  maxForks 64
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
