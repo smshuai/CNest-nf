@@ -74,12 +74,12 @@ process step1 {
   """
 }
 
-// Re-usable process skeleton that performs a simple operation, listing files
 process step2 {
   tag "id:${name}-file:${file_path}-index:${index_path}"
   publishDir "results/", mode: "copy"
   errorStrategy 'ignore'
   echo true
+  maxForks 24
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
