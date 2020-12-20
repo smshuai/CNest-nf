@@ -79,7 +79,7 @@ process step2 {
   publishDir "results/", mode: "copy"
   errorStrategy = { task.exitStatus in [403, 401] ? 'ignore' : 'terminate' }
   echo true
-  maxForks 60
+  maxForks 70
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
