@@ -1,11 +1,16 @@
 #!/usr/bin/env nextflow
 
+/*
+* Part1 is used to run step1 & 2 - index generation & bam/cram2bin.
+*/
+
+
 // Re-usable componext for adding a helpful help message in our Nextflow script
 def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --project test --design design_file.csv --ref ./ref/
+    nextflow run part1.nf --project test --design design_file.csv --ref ref.fa [--bed bait.bed]
     Mandatory arguments:
       --project       [string] Name of the project
       --design        [file] A csv file with sample name, CRAM path and CRAI path
@@ -14,8 +19,8 @@ def helpMessage() {
                       test,test.cram,test.cram.crai
       --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
     Optional arguments:
-      --test          [flag] test mode
-
+      --bed           [file] Path for the bait file (in BED3 format; hg38 WGS baits will be used by default)
+      --test          [flag] test mode (only 10 samples are used)
     """.stripIndent()
 }
 
@@ -79,7 +84,6 @@ process step2 {
   publishDir "results/", mode: "copy"
   errorStrategy 'ignore'
   echo true
-  maxForks 24
 
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
@@ -88,20 +92,14 @@ process step2 {
 
   output:
   path "${params.project}/bin/$name" into ch_bin
-  // path "${params.project}" into ch_proj2
-  // val true into ch_done_step2
 
   script:
   if (params.test)
     """
-    ls -lLR
     cnest.py --debug step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
-    df -h
     """
   else
     """
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
-    ls -lLR
-    df -h
     """
 }
