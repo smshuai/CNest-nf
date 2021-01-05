@@ -8,16 +8,50 @@ def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --project test --design design_file.csv --ref ./ref/
+    nextflow run part3.nf --project test_proj --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt --gender ./results/gender_classification.txt
     Mandatory arguments:
-      --project       [string] Name of the project
-      --design        [file] A csv file with sample name, CRAM path and CRAI path
-                      A file could look like this:
-                      name,cram,crai
-                      test,test.cram,test.cram.crai
-      --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
-    Optional arguments:
-      --test          [flag] test mode
-
+      --project      [string] Name of the project
+      --binDir       [path] Path to the bin file folder
+      --index        [file] Path to index_tab.txt
+      --gender       [file] Path to gender_classification.txt
     """.stripIndent()
+}
+
+if (params.binDir) {
+  ch_bin = Channel.value(file(params.binDir))
+  all_samples = file(params.binDir).list()
+  ch_sample_names = Channel.from(all_samples)
+}
+if (params.index) ch_index = Channel.value(file(params.index))
+if (params.gender) ch_gender = Channel.value(file(params.gender))
+
+process step4 {
+  tag "${sample_name}"
+  echo true
+  publishDir "results/", mode: "copy"
+
+  input:
+  path bin_dir from ch_bin
+  path index from ch_index
+  path gender from ch_gender
+  val sample_name from ch_sample_names
+
+  output:
+  path "${params.project}/cor" into ch_cor
+  path "${params.project}/logr" into ch_logr
+  path "${params.project}/rbin" into ch_rbin
+
+  script:
+  """
+    mkdir -p ${params.project}/cor ${params.project}/logr ${params.project}/rbin
+    cnest.py step4 \
+    --bindir $bin_dir \
+    --indextab $index \
+    --gender $gender \
+    --sample $sample_name \
+    --batch 1000 \
+    --cordir ${params.project}/cor \
+    --logrdir ${params.project}/logr \
+    --rbindir ${params.project}/rbin
+  """
 }

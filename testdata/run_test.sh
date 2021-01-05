@@ -14,3 +14,7 @@ then
 fi
 
 nextflow run ../part1.nf --project test_proj --design design.csv  --ref $ref_path 
+
+nextflow run ../part2.nf --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
+
+nextflow run ../part3.nf --project test_proj --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt --gender ./results/gender_classification.txt

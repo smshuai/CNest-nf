@@ -65,14 +65,18 @@ process step0 {
 // Step1 create work directory
 process step1 {
   tag "${params.project}"
+  publishDir "results/", mode: "copy", pattern: "${params.project}/index*"
   echo true
 
   input: 
   file(bed) from ch_bed
 
   output: 
-  file ("${params.project}") into ch_proj1
-  
+  file ("${params.project}") into ch_proj
+  path "${params.project}/index_tab.txt" into ch_index_tab
+  path "${params.project}/index.txt" into ch_index
+  path "${params.project}/index.bed" into ch_index_bed
+
   script:
   """
   cnest.py step1 --project ${params.project} --bed ${bed}
@@ -88,7 +92,7 @@ process step2 {
   input:
   set val(name), file(file_path), file(index_path) from ch_files_sets
   file("genome.fa") from ch_ref
-  file(project) from ch_proj1
+  file(project) from ch_proj
 
   output:
   path "${params.project}/bin/$name" into ch_bin

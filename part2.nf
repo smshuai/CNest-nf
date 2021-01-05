@@ -8,35 +8,36 @@ def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --project test --design design_file.csv --ref ./ref/
+    nextflow run part2.nf --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
     Mandatory arguments:
-      --project       [string] Name of the project
-      --design        [file] A csv file with sample name, CRAM path and CRAI path
-                      A file could look like this:
-                      name,cram,crai
-                      test,test.cram,test.cram.crai
-      --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
-    Optional arguments:
-      --test          [flag] test mode
-
+      --binDir       [path] Path to the bin file folder
+      --index        [file] Path to index_tab.txt
     """.stripIndent()
 }
 
+if (params.binDir) ch_bin = Channel.value(file(params.binDir))
+if (params.index) ch_index = Channel.value(file(params.index))
+
 process step3 {
-  tag "${params.project}"
   echo true
   publishDir "results/", mode: "copy"
 
   input:
-  val flag from ch_done_step2.collect()
-  path project from ch_proj2.first()
-  
+  path bin_dir from ch_bin
+  path index from ch_index
+
   output:
-  path "${params.project}" into ch_proj3
+  path "gender_qc.txt" into ch_gender_qc
+  path "gender_classification.txt" into ch_gender_file
+  path "mean_coverage.txt" into ch_cov_file
 
   script:
   """
-    ls -lLR
-    cnest.py step3 --project ${params.project}
+    cnest.py step3 \
+    --indextab $index \
+    --bindir $bin_dir \
+    --qc gender_qc.txt \
+    --gender gender_classification.txt \
+    --cov mean_coverage.txt
   """
 }
