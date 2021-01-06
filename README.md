@@ -22,7 +22,8 @@ nextflow run -profile lsf part2.nf \
 nextflow run -profile lsf part3.nf --project test_proj \
     --binDir ./results/test_proj/bin/ \
     --index ./results/test_proj/index_tab.txt \
-    --gender ./results/gender_classification.txt
+    --gender ./results/gender_classification.txt \
+    --batch 1000
 
 # Part 4
 nextflow run -profile lsf part4.nf --project test_proj \

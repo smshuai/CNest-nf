@@ -56,7 +56,7 @@ process step4 {
       --indextab $index \
       --gender $gender \
       --sample $sample_name \
-      --batch 1000 \
+      --batch ${params.batch} \
       --cordir ${params.project}/cor \
       --logrdir ${params.project}/logr \
       --rbindir ${params.project}/rbin
