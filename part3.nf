@@ -9,12 +9,14 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
     nextflow run part3.nf --project test_proj --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt --gender ./results/gender_classification.txt
+    
     Mandatory arguments:
       --project      [string] Name of the project
       --binDir       [path] Path to the bin file folder
       --index        [file] Path to index_tab.txt
       --gender       [file] Path to gender_classification.txt
       --batch        [int] Batch size used in reference search
+    
     Optional arguments:
       --test         [flag] test mode (only 3 samples are used)
 

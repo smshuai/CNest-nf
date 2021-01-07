@@ -11,6 +11,7 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
     nextflow run part1.nf --project test --design design_file.csv --ref ref.fa [--bed bait.bed]
+    
     Mandatory arguments:
       --project       [string] Name of the project
       --design        [file] A csv file with sample name, CRAM path and CRAI path
@@ -18,6 +19,7 @@ def helpMessage() {
                       name,cram,crai
                       test,test.cram,test.cram.crai
       --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
+    
     Optional arguments:
       --bed           [file] Path for the bait file (in BED3 format; hg38 WGS baits will be used by default)
       --test          [flag] test mode (only 10 samples are used)

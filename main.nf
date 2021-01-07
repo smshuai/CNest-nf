@@ -88,20 +88,14 @@ process step2 {
 
   output:
   path "${params.project}/bin/$name" into ch_bin
-  // path "${params.project}" into ch_proj2
-  // val true into ch_done_step2
 
   script:
   if (params.test)
     """
-    ls -lLR
     cnest.py --debug step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
-    df -h
     """
   else
     """
     cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
-    ls -lLR
-    df -h
     """
 }

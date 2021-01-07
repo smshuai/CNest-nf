@@ -9,6 +9,7 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
     nextflow run part2.nf --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
+    
     Mandatory arguments:
       --binDir       [path] Path to the bin file folder
       --index        [file] Path to index_tab.txt

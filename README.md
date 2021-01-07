@@ -9,7 +9,11 @@ cd CNest-nf
 # bed_path=/hps/research1/birney/users/shimin/CNest/index_files/ukbb_wes_index.bed
 
 # Part 1
-nextflow run -profile lsf part1.nf --project test_proj --design design.csv --ref $ref_path --bed $bed_path
+nextflow run -profile lsf part1.nf \
+    --project test_proj \
+    --design design.csv \
+    --ref $ref_path \
+    --bed $bed_path
 
 # Part 2
 nextflow run -profile lsf part2.nf \
