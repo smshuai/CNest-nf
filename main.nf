@@ -208,8 +208,8 @@ if (params.part == 4){
     tag "${sample_name}"
     echo true
     publishDir "results/", mode: "copy"
-    memory { 2.GB * params.batch / 100 }
-    time { 20.m * params.batch / 100  }
+    memory { 5.GB * params.batch / 100 }
+    time { 40.m * params.batch / 100  }
 
     input:
     path rbin_dir from ch_rbin
