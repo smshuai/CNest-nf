@@ -1,45 +1,59 @@
-# Run with LSF/SLURM
+# Run with LSF/SLURM and Singularity
+Test with singularity version `3.5.0` and `3.7.0-1.el7`.
 
 ```bash
-git clone https://github.com/smshuai/CNest-nf
-cd CNest-nf
+#####################
+## Required arguments
+#####################
 
-# module load singularity/3.5.0
-# ref_path=/hps/research1/birney/users/shimin/reference/UKBB_FE/genome.fa
-# bed_path=/hps/research1/birney/users/shimin/CNest/index_files/ukbb_wes_index.bed
+module load singularity/3.5.0 
+ref_path=/hps/research1/birney/users/shimin/reference/UKBB_FE/genome.fa
+bed_path=/hps/research1/birney/users/shimin/CNest/index_files/ukbb_wes_index.bed
+project_name=test_proj
+design_file=design.csv
+batch_size=1000
+executor=lsf # set this to slurm for SLURM HPCs
 
-# set this to slurm for SLURM HPCs
-executor=lsf
+##########
 
-# Part 1
-nextflow run -with-report -profile $executor part1.nf \
-    --project test_proj \
-    --design design.csv \
+# Part 1 : Bait read count
+nextflow run -with-report p1_report.html -with-trace p1_trace  -profile $executor \
+    -r main -latest smshuai/CNest-nf \
+    --part 1 \
+    --project $project_name \
+    --design $design_file \
     --ref $ref_path \
     --bed $bed_path
 
-# Part 2
-nextflow run -with-report -profile $executor part2.nf \
-    --binDir ./results/test_proj/bin/ \
-    --index ./results/test_proj/index_tab.txt
+# Part 2 : Gender QC
+nextflow run -with-report p2_report.html -with-trace p2_trace -profile $executor \
+    -r main -latest smshuai/CNest-nf \
+    --part 2 \
+    --project $project_name \
+    --binDir ./results/$project_name/bin/ \
+    --index ./results/$project_name/index_tab.txt
 
 # ! Do QC here before continue
 
-# Part 3
-nextflow run -with-report -profile $executor part3.nf --project test_proj \
-    --binDir ./results/test_proj/bin/ \
-    --index ./results/test_proj/index_tab.txt \
+# Part 3 : logR-ratio calculation
+nextflow run -with-report p3_report.html -with-trace p3_trace -profile $executor \
+    -r main -latest smshuai/CNest-nf \
+    --part 3 \
+    --project $project_name \
+    --binDir ./results/$project_name/bin/ \
+    --index ./results/$project_name/index_tab.txt \
     --gender ./results/gender_classification.txt \
-    --batch 100
+    --batch $batch_size
 
-# Part 4
-nextflow run -with-report -profile $executor smshuai/CNest-nf \
+# Part 4 : HMM call
+nextflow run -with-report p4_report.html -with-trace p4_trace -profile $executor \
+    -r main -latest smshuai/CNest-nf \
     --part 4 \
-    --project test_proj \
-    --rbindir ./results/test_proj/rbin/ \
-    --cordir ./results/test_proj/cov/ \
-    --index ./results/test_proj/index_tab.txt \
+    --project $project_name \
+    --rbindir ./results/$project_name/rbin/ \
+    --cordir ./results/$project_name/cor/ \
+    --index ./results/$project_name/index_tab.txt \
     --gender ./results/gender_classification.txt \
-    --cov ./results/mean_coverage.txt
-
+    --cov ./results/mean_coverage.txt \
+    --batch $batch_size
 ```
