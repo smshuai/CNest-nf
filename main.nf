@@ -65,8 +65,8 @@ if (params.cov) ch_cov = Channel.value(file(params.cov))
 
 // Test mode
 if (params.test && params.design) ch_files_sets = ch_files_sets.take(5)
-if (params.test && params.bin_dir) ch_bin_names = ch_bin_names.take(3)
-if (params.test && params.rbin_dir) ch_rbin_names = ch_rbin_names.take(3)
+if (params.test && params.bindir) ch_bin_names = ch_bin_names.take(3)
+if (params.test && params.rbindir) ch_rbin_names = ch_rbin_names.take(3)
 
 if (params.part == 1) {
   ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
