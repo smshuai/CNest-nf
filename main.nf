@@ -11,11 +11,6 @@ def helpMessage() {
     Mandatory arguments:
       --project       [string] Name of the project
       --part          [int] Part of the workflow to run. One of [1, 2, 3, 4]
-      --design        [file] A csv file with sample name, CRAM path and CRAI path
-                      A file could look like this:
-                      name,cram,crai
-                      test,test.cram,test.cram.crai
-      --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
 
     Part 4 arguments:
       --rbindir
@@ -48,10 +43,7 @@ if (params.design) {
     .map { name, file_path, index_path -> [ name, file(file_path), file(index_path) ] }
     .set { ch_files_sets }
 }
-// In test mode, a max of 10 samples are used
-if (params.test) {
-  ch_files_sets = ch_files_sets.take(10)
-}
+
 
 // Directories
 if (params.bindir) {
@@ -72,6 +64,7 @@ if (params.gender) ch_gender = Channel.value(file(params.gender))
 if (params.cov) ch_cov = Channel.value(file(params.cov))
 
 // Test mode
+if (params.test && params.design) ch_files_sets = ch_files_sets.take(5)
 if (params.test && params.bin_dir) ch_bin_names = ch_bin_names.take(3)
 if (params.test && params.rbin_dir) ch_rbin_names = ch_rbin_names.take(3)
 
