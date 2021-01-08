@@ -12,7 +12,7 @@ def helpMessage() {
     
     Mandatory arguments:
       --project      [string] Name of the project
-      --binDir       [path] Path to the bin file folder
+      --bindir       [path] Path to the bin file folder
       --index        [file] Path to index_tab.txt
       --gender       [file] Path to gender_classification.txt
       --batch        [int] Batch size used in reference search
@@ -23,9 +23,9 @@ def helpMessage() {
     """.stripIndent()
 }
 
-if (params.binDir) {
-  ch_bin = Channel.value(file(params.binDir))
-  all_samples = file(params.binDir).list()
+if (params.bindir) {
+  ch_bin = Channel.value(file(params.bindir))
+  all_samples = file(params.bindir).list()
   ch_sample_names = Channel.from(all_samples)
 }
 if (params.test) ch_sample_names = ch_sample_names.take(3)
