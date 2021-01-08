@@ -35,6 +35,7 @@ process step4 {
   echo true
   publishDir "results/", mode: "copy"
   memory { 2.GB * params.batch / 100 }
+  time { 20.m * params.batch / 100  }
 
   input:
   path bin_dir from ch_bin
