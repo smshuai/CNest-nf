@@ -6,15 +6,24 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
     
-    nextflow run main.nf --project test --design design_file.csv --ref ./ref/
+    nextflow run main.nf --project test --part 4 
     
     Mandatory arguments:
       --project       [string] Name of the project
+      --part          [int] Part of the workflow to run. One of [1, 2, 3, 4]
       --design        [file] A csv file with sample name, CRAM path and CRAI path
                       A file could look like this:
                       name,cram,crai
                       test,test.cram,test.cram.crai
       --ref           [file] Path for the genome FASTA. Used for CRAM decoding.
+
+    Part 4 arguments:
+      --rbindir
+      --cordir
+      --index
+      --gender
+      --cov
+
     Optional arguments:
       --test          [flag] test mode
       --help          [flag] Show help messages
@@ -43,6 +52,28 @@ if (params.design) {
 if (params.test) {
   ch_files_sets = ch_files_sets.take(10)
 }
+
+// Directories
+if (params.bindir) {
+  ch_bin = Channel.value(file(params.bindir))
+  all_bins = file(params.bindir).list()
+  ch_bin_names = Channel.from(all_bins)
+}
+if (params.rbindir) {
+  ch_rbin = Channel.value(file(params.rbindir))
+  all_rbins = file(params.rbindir).list()
+  ch_rbin_names = Channel.from(all_rbins)
+}
+if (params.cordir) ch_cor = Channel.value(file(params.cordir))
+
+// Helper files
+if (params.index) ch_index = Channel.value(file(params.index))
+if (params.gender) ch_gender = Channel.value(file(params.gender))
+if (params.cov) ch_cov = Channel.value(file(params.cov))
+
+// Test mode
+if (params.test && params.bin_dir) ch_bin_names = ch_bin_names.take(3)
+if (params.test && params.rbin_dir) ch_rbin_names = ch_rbin_names.take(3)
 
 if (params.part == 1) {
   ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
@@ -81,9 +112,9 @@ if (params.part == 1) {
 
     output: 
     file ("${params.project}") into ch_proj
-    path "${params.project}/index_tab.txt" into ch_index_tab
-    path "${params.project}/index.txt" into ch_index
-    path "${params.project}/index.bed" into ch_index_bed
+    path "${params.project}/index_tab.txt"
+    path "${params.project}/index.txt"
+    path "${params.project}/index.bed"
 
     script:
     """
@@ -103,7 +134,7 @@ if (params.part == 1) {
     file(project) from ch_proj
 
     output:
-    path "${params.project}/bin/$name" into ch_bin
+    path "${params.project}/bin/$name"
 
     script:
     if (params.test)
@@ -119,61 +150,99 @@ if (params.part == 1) {
 
 if (params.part == 2) {
   process step3 {
-  echo true
-  publishDir "results/", mode: "copy"
+    echo true
+    publishDir "results/", mode: "copy"
 
-  input:
-  path bin_dir from ch_bin
-  path index from ch_index
+    input:
+    path bin_dir from ch_bin
+    path index from ch_index
 
-  output:
-  path "gender_qc.txt" into ch_gender_qc
-  path "gender_classification.txt" into ch_gender_file
-  path "mean_coverage.txt" into ch_cov_file
+    output:
+    path "gender_qc.txt"
+    path "gender_classification.txt"
+    path "mean_coverage.txt"
 
-  script:
-  """
-    cnest.py step3 \
-    --indextab $index \
-    --bindir $bin_dir \
-    --qc gender_qc.txt \
-    --gender gender_classification.txt \
-    --cov mean_coverage.txt
-  """
+    script:
+    """
+      cnest.py step3 \
+      --indextab $index \
+      --bindir $bin_dir \
+      --qc gender_qc.txt \
+      --gender gender_classification.txt \
+      --cov mean_coverage.txt
+    """
   }
 }
 
 if (params.part == 3) {
   process step4 {
-  tag "${sample_name}"
-  echo true
-  publishDir "results/", mode: "copy"
-  memory { 2.GB * params.batch / 100 }
+    tag "${sample_name}"
+    echo true
+    publishDir "results/", mode: "copy"
+    memory { 2.GB * params.batch / 100 }
+    time { 20.m * params.batch / 100  }
 
-  input:
-  path bin_dir from ch_bin
-  path index from ch_index
-  path gender from ch_gender
-  val sample_name from ch_sample_names
+    input:
+    path bin_dir from ch_bin
+    path index from ch_index
+    path gender from ch_gender
+    val sample_name from ch_bin_names
 
-  output:
-  path "${params.project}/cor/$sample_name" into ch_cor
-  path "${params.project}/logr/$sample_name" into ch_logr
-  path "${params.project}/rbin/$sample_name" into ch_rbin
+    output:
+    path "${params.project}/cor/$sample_name"
+    path "${params.project}/logr/$sample_name"
+    path "${params.project}/rbin/$sample_name"
 
-  script:
-  """
-    echo "Processing sample $sample_name"
-    mkdir -p ${params.project}/cor ${params.project}/logr ${params.project}/rbin
-    cnest.py step4 \
-      --bindir $bin_dir \
-      --indextab $index \
-      --gender $gender \
-      --sample $sample_name \
-      --batch ${params.batch} \
-      --cordir ${params.project}/cor \
-      --logrdir ${params.project}/logr \
-      --rbindir ${params.project}/rbin
-  """
+    script:
+    """
+      echo "Processing sample $sample_name"
+      mkdir -p ${params.project}/cor/ ${params.project}/logr/ ${params.project}/rbin/
+      cnest.py step4 \
+        --bindir $bin_dir \
+        --indextab $index \
+        --gender $gender \
+        --sample $sample_name \
+        --batch ${params.batch} \
+        --cordir ${params.project}/cor/ \
+        --logrdir ${params.project}/logr/ \
+        --rbindir ${params.project}/rbin/
+    """
+  }
+}
+
+if (params.part == 4){
+  process hmm_call {
+    tag "${sample_name}"
+    echo true
+    publishDir "results/", mode: "copy"
+    memory { 2.GB * params.batch / 100 }
+    time { 20.m * params.batch / 100  }
+
+    input:
+    path rbin_dir from ch_rbin
+    path cor_dir from ch_cor
+    path index from ch_index
+    path gender_file from ch_gender
+    path cov_file from ch_cov
+    val sample_name from ch_rbin_names
+
+    output:
+    path "${params.project}/cnv/${sample_name}/${sample_name}_mixed_calls.txt"
+    path "${params.project}/cnv/${sample_name}/${sample_name}_mixed_states.txt"
+
+    script:
+    """
+      echo "Processing sample $sample_name"
+      mkdir -p ${params.project}/cnv/
+      cnest.py step5 \
+        --indextab $index \
+        --rbindir $rbin_dir \
+        --cordir $cor_dir \
+        --cnvdir ${params.project}/cnv/ \
+        --cov    $cov_file \
+        --sample $sample_name \
+        --gender $gender_file \
+        --batch $params.batch
+    """
   }
 }
