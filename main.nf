@@ -166,10 +166,10 @@ if (params.part == 2) {
       echo true
 
       input:
-          path bins from ch_bins
+        path bins from ch_bins
       
       output:
-          path 'bin/' into ch_bin
+        path 'bin/' into ch_bin
 
       when:
         params.binlist
