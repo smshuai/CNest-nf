@@ -46,11 +46,30 @@ if (params.design) {
 
 
 // Directories
+
+// ! bindir and binlist are mutually exclusive
+
+// Path to a folder of bin files
 if (params.bindir) {
   ch_bin = Channel.value(file(params.bindir))
   all_bins = file(params.bindir).list()
   ch_bin_names = Channel.from(all_bins)
 }
+
+// A txt file with one bin file per row
+if (params.binlist) {
+  Channel
+    .fromPath(params.binlist)
+    .splitText()
+    .collect()
+    .set {ch_bins}
+  Channel.
+    .fromPath(params.binlist)
+    .splitText()
+    .map { it -> file(it).baseName }
+    .set {ch_bin_names}
+}
+
 if (params.rbindir) {
   ch_rbin = Channel.value(file(params.rbindir))
   all_rbins = file(params.rbindir).list()
@@ -142,6 +161,31 @@ if (params.part == 1) {
 }
 
 if (params.part == 2) {
+
+  process stage_bins {
+      echo true
+
+      input:
+          path bins from ch_bins
+      
+      output:
+          path 'bin/' into ch_bin
+
+      when:
+        params.binlist
+      
+      shell:
+      '''
+      ls ./ > all_files
+      mkdir -p bin
+      cat ./all_files | while read f
+      do
+          mv $f bin/
+      done
+      rm bin/all_files
+      '''
+  }
+
   process step3 {
     echo true
     publishDir "results/", mode: "copy"

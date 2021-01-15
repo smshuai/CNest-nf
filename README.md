@@ -1,4 +1,6 @@
-# Run with LSF/SLURM and Singularity
+# A Nextflow pipeline for copy number estimation and analysis using CNest
+
+## Run with LSF/SLURM and Singularity
 Test with singularity version `3.5.0` and `3.7.0-1.el7`.
 
 ```bash
@@ -30,7 +32,7 @@ nextflow run -with-report p2_report.html -with-trace p2_trace -profile $executor
     -r main -latest smshuai/CNest-nf \
     --part 2 \
     --project $project_name \
-    --binDir ./results/$project_name/bin/ \
+    --bindir ./results/$project_name/bin/ \
     --index ./results/$project_name/index_tab.txt
 
 # ! Do QC here before continue
@@ -40,7 +42,7 @@ nextflow run -with-report p3_report.html -with-trace p3_trace -profile $executor
     -r main -latest smshuai/CNest-nf \
     --part 3 \
     --project $project_name \
-    --binDir ./results/$project_name/bin/ \
+    --bindir ./results/$project_name/bin/ \
     --index ./results/$project_name/index_tab.txt \
     --gender ./results/gender_classification.txt \
     --batch $batch_size
@@ -56,4 +58,15 @@ nextflow run -with-report p4_report.html -with-trace p4_trace -profile $executor
     --gender ./results/gender_classification.txt \
     --cov ./results/mean_coverage.txt \
     --batch $batch_size
+```
+
+## Run with AWS
+```
+# Part 2 : Gender QC
+# ! $binfiles is a .txt with one bin file path per line
+nextflow run smshuai/CNest-nf \
+    --part 2 \
+    --project $project_name \
+    --binlist $binfiles \
+    --index ./results/$project_name/index_tab.txt
 ```
