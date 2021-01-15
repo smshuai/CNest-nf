@@ -63,7 +63,7 @@ if (params.binlist) {
     .splitText()
     .collect()
     .set {ch_bins}
-  Channel.
+  Channel
     .fromPath(params.binlist)
     .splitText()
     .map { it -> file(it).baseName }
