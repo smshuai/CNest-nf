@@ -169,7 +169,7 @@ if (params.part == 2) {
         path bins from ch_bins
       
       output:
-        file ("bin/") into ch_bin
+        file ("bin") into ch_bin
 
       when:
         params.binlist
