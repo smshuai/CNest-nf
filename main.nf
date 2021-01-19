@@ -84,9 +84,8 @@ if (params.cov) ch_cov = Channel.value(file(params.cov))
 
 // Test mode
 if (params.test && params.design) ch_files_sets = ch_files_sets.take(5)
-if (params.test && params.bindir) ch_bin_names = ch_bin_names.take(5)
+if (params.test && (params.bindir || params.binlist)) ch_bin_names = ch_bin_names.take(5)
 if (params.test && params.rbindir) ch_rbin_names = ch_rbin_names.take(5)
-
 
 /*
 ================================================================================
