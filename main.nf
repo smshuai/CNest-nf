@@ -145,6 +145,7 @@ if (params.part == 2) {
   process step3 {
     echo true
     publishDir "results/", mode: "copy"
+    time 10.h
 
     input:
     path bin_dir from ch_bin
