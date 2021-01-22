@@ -20,7 +20,7 @@ def helpMessage() {
       --cov
 
     Optional arguments:
-      --test          [flag] test mode
+      --test          [flag] test mode (use only 5 samples)
       --help          [flag] Show help messages
 
     """.stripIndent()
@@ -46,11 +46,30 @@ if (params.design) {
 
 
 // Directories
+
+// ! bindir and binlist are mutually exclusive
+
+// Path to a folder of bin files
 if (params.bindir) {
   ch_bin = Channel.value(file(params.bindir))
   all_bins = file(params.bindir).list()
   ch_bin_names = Channel.from(all_bins)
 }
+
+// A txt file with one bin file per row
+if (params.binlist) {
+  Channel
+    .fromPath(params.binlist)
+    .splitText()
+    .collect()
+    .set {ch_bins}
+  Channel
+    .fromPath(params.binlist)
+    .splitText()
+    .map { it -> file(it).baseName }
+    .set {ch_bin_names}
+}
+
 if (params.rbindir) {
   ch_rbin = Channel.value(file(params.rbindir))
   all_rbins = file(params.rbindir).list()
@@ -65,8 +84,42 @@ if (params.cov) ch_cov = Channel.value(file(params.cov))
 
 // Test mode
 if (params.test && params.design) ch_files_sets = ch_files_sets.take(5)
-if (params.test && params.bindir) ch_bin_names = ch_bin_names.take(3)
-if (params.test && params.rbindir) ch_rbin_names = ch_rbin_names.take(3)
+if (params.test && (params.bindir || params.binlist)) ch_bin_names = ch_bin_names.take(5)
+if (params.test && params.rbindir) ch_rbin_names = ch_rbin_names.take(5)
+
+/*
+================================================================================
+                                File staging
+================================================================================
+*/
+if (params.binlist) {
+  process stage_bins {
+      echo true
+
+      input:
+        path bins from ch_bins
+      
+      output:
+        file ("bin") into ch_bin
+      
+      shell:
+      '''
+      ls ./ > all_files
+      mkdir -p bin
+      cat ./all_files | while read f
+      do
+          mv $f bin/
+      done
+      rm bin/all_files
+      '''
+  }
+}
+
+/*
+================================================================================
+                                Main parts
+================================================================================
+*/
 
 if (params.part == 1) {
   ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
@@ -142,6 +195,7 @@ if (params.part == 1) {
 }
 
 if (params.part == 2) {
+
   process step3 {
     echo true
     publishDir "results/", mode: "copy"
@@ -189,7 +243,7 @@ if (params.part == 3) {
 
     script:
     """
-      echo "Processing sample $sample_name"
+      ls -lL $bin_dir | wc -l
       mkdir -p ${params.project}/cor/ ${params.project}/logr/ ${params.project}/rbin/
       cnest.py step4 \
         --bindir $bin_dir \
