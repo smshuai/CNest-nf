@@ -242,7 +242,7 @@ if (params.part == 3) {
 
     script:
     """
-      echo "Processing sample $sample_name"
+      ls -lL $bin_dir | wc -l
       mkdir -p ${params.project}/cor/ ${params.project}/logr/ ${params.project}/rbin/
       cnest.py step4 \
         --bindir $bin_dir \
