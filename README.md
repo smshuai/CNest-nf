@@ -72,13 +72,12 @@ nextflow run smshuai/CNest-nf \
 
 
 # Part 3 : logR-ratio calculation
-# ! $binfiles is a .txt with one bin file path per line
 nextflow run smshuai/CNest-nf \
     --part 3 \
     --project $project_name \
-    --binlist $binfiles \
-    --index ./results/$project_name/index_tab.txt \
-    --gender ./results/gender_classification.txt \
+    --bindir $bin_dir \
+    --index index_tab.txt \
+    --gender gender_classification.txt \
     --batch $batch_size
 
 ```

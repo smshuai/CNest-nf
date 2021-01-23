@@ -49,12 +49,11 @@ if (params.design) {
 
 // ! bindir and binlist are mutually exclusive
 
-// Path to a folder of bin files
-if (params.bindir) {
-  ch_bin = Channel.value(file(params.bindir))
-  all_bins = file(params.bindir).list()
-  ch_sample_names = Channel.from(all_bins)
-}
+// Path to a folder of bin/rbin/cor files
+if (params.bindir) ch_bin = Channel.value(file(params.bindir))
+if (params.rbindir) ch_rbin = Channel.value(file(params.rbindir))
+if (params.cordir) ch_cor = Channel.value(file(params.cordir))
+
 
 // A txt file with one bin file per row
 if (params.binlist) {
@@ -63,19 +62,10 @@ if (params.binlist) {
     .splitText()
     .collect()
     .set {ch_bins}
-  Channel
-    .fromPath(params.binlist)
-    .splitText()
-    .map { it -> file(it).baseName }
-    .set {ch_sample_names}
 }
 
-if (params.rbindir) {
-  ch_rbin = Channel.value(file(params.rbindir))
-  all_rbins = file(params.rbindir).list()
-  ch_sample_names = Channel.from(all_rbins)
-}
 
+// Sample names
 // If sample names are specified as a file, using it instead of all sample names in bin_dir or rbin_dir
 if (params.samples) {
   Channel
@@ -84,7 +74,24 @@ if (params.samples) {
     .set {ch_sample_names}
 }
 
-if (params.cordir) ch_cor = Channel.value(file(params.cordir))
+if (!params.samples && params.bindir) {
+  all_bins = file(params.bindir).list()
+  ch_sample_names = Channel.from(all_bins)
+}
+
+if (!params.samples && params.rbindir) {
+  all_rbins = file(params.rbindir).list()
+  ch_sample_names = Channel.from(all_rbins)
+}
+
+if (!params.samples && params.binlist) {
+  Channel
+    .fromPath(params.binlist)
+    .splitText()
+    .map { it -> file(it).baseName }
+    .set {ch_sample_names}
+}
+
 
 // Helper files
 if (params.index) ch_index = Channel.value(file(params.index))
@@ -204,10 +211,10 @@ if (params.part == 1) {
 
 if (params.part == 2) {
 
-  process step3 {
+  process gender_qc {
     echo true
     publishDir "results/", mode: "copy"
-    time 10.h
+    time '10h'
 
     input:
     path bin_dir from ch_bin
@@ -231,7 +238,7 @@ if (params.part == 2) {
 }
 
 if (params.part == 3) {
-  process step4 {
+  process logR_ratio {
     tag "${sample_name}"
     echo true
     errorStrategy 'ignore'
