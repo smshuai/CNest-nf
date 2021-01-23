@@ -53,7 +53,7 @@ if (params.design) {
 if (params.bindir) {
   ch_bin = Channel.value(file(params.bindir))
   all_bins = file(params.bindir).list()
-  ch_bin_names = Channel.from(all_bins)
+  ch_sample_names = Channel.from(all_bins)
 }
 
 // A txt file with one bin file per row
@@ -67,14 +67,23 @@ if (params.binlist) {
     .fromPath(params.binlist)
     .splitText()
     .map { it -> file(it).baseName }
-    .set {ch_bin_names}
+    .set {ch_sample_names}
 }
 
 if (params.rbindir) {
   ch_rbin = Channel.value(file(params.rbindir))
   all_rbins = file(params.rbindir).list()
-  ch_rbin_names = Channel.from(all_rbins)
+  ch_sample_names = Channel.from(all_rbins)
 }
+
+// If sample names are specified as a file, using it instead of all sample names in bin_dir or rbin_dir
+if (params.samples) {
+  Channel
+    .fromPath(params.samples)
+    .splitText()
+    .set {ch_sample_names}
+}
+
 if (params.cordir) ch_cor = Channel.value(file(params.cordir))
 
 // Helper files
@@ -84,8 +93,7 @@ if (params.cov) ch_cov = Channel.value(file(params.cov))
 
 // Test mode
 if (params.test && params.design) ch_files_sets = ch_files_sets.take(5)
-if (params.test && (params.bindir || params.binlist)) ch_bin_names = ch_bin_names.take(5)
-if (params.test && params.rbindir) ch_rbin_names = ch_rbin_names.take(5)
+if (params.test && (params.bindir || params.binlist || params.rbindir || params.samples)) ch_sample_names = ch_sample_names.take(5)
 
 /*
 ================================================================================
@@ -235,7 +243,7 @@ if (params.part == 3) {
     path bin_dir from ch_bin
     path index from ch_index
     path gender from ch_gender
-    val sample_name from ch_bin_names
+    val sample_name from ch_sample_names
 
     output:
     path "${params.project}/cor/$sample_name"
@@ -272,7 +280,7 @@ if (params.part == 4){
     path index from ch_index
     path gender_file from ch_gender
     path cov_file from ch_cov
-    val sample_name from ch_rbin_names
+    val sample_name from ch_sample_names
 
     output:
     path "${params.project}/cnv/${sample_name}/${sample_name}_mixed_calls.txt"
