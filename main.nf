@@ -70,8 +70,8 @@ if (params.binlist) {
 if (params.samples) {
   Channel
     .fromPath(params.samples)
-    .splitText()
-    .set {ch_sample_names}
+    .splitText() { it.trim() }
+    .set { ch_sample_names }
 }
 
 if (!params.samples && params.bindir) {
