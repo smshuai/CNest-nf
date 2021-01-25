@@ -87,9 +87,8 @@ if (!params.samples && params.rbindir) {
 if (!params.samples && params.binlist) {
   Channel
     .fromPath(params.binlist)
-    .splitText()
-    .map { it -> file(it).baseName }
-    .set {ch_sample_names}
+    .splitText() { file(it).baseName.trim() }
+    .set { ch_sample_names }
 }
 
 
