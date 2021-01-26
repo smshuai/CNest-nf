@@ -20,6 +20,7 @@ def helpMessage() {
       --cov
 
     Optional arguments:
+      --wgs           [flag] indicate if this is WGS (for MEM calculation)
       --test          [flag] test mode (use only 5 samples)
       --help          [flag] Show help messages
 
@@ -29,6 +30,11 @@ def helpMessage() {
 // Show help message
 if (params.help) exit 0, helpMessage()
 
+if (params.wgs) {
+  mem_factor = 2
+} else {
+  mem_factor = 1
+}
 /*
 ================================================================================
                                 Set parameters
@@ -184,7 +190,7 @@ if (params.part == 1) {
 
   process step2 {
     tag "id:${name}-file:${file_path}-index:${index_path}"
-    publishDir "results/", mode: "copy"
+    publishDir "results/", mode: "move"
     errorStrategy 'ignore'
     echo true
 
@@ -212,7 +218,7 @@ if (params.part == 2) {
 
   process gender_qc {
     echo true
-    publishDir "results/", mode: "copy"
+    publishDir "results/", mode: "move"
     time '10h'
 
     input:
@@ -241,9 +247,9 @@ if (params.part == 3) {
     tag "${sample_name}"
     echo true
     errorStrategy 'ignore'
-    publishDir "results/", mode: "copy"
-    memory { 2.GB * params.batch / 100 }
-    time { 30.m * params.batch / 100  }
+    publishDir "results/", mode: "move"
+    memory { 1.GB * params.batch * mem_factor / 100 }
+    time { 20.m * params.batch * mem_factor / 100  }
 
     input:
     path bin_dir from ch_bin
@@ -276,7 +282,7 @@ if (params.part == 4){
   process hmm_call {
     tag "${sample_name}"
     echo true
-    publishDir "results/", mode: "copy"
+    publishDir "results/", mode: "move"
     memory { 5.GB * params.batch / 100 }
     time { 40.m * params.batch / 100  }
 
