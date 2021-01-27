@@ -249,7 +249,7 @@ if (params.part == 3) {
     errorStrategy 'ignore'
     publishDir "results/", mode: "move"
     memory { 1.GB * params.batch * mem_factor / 100 }
-    time { 20.m * params.batch * mem_factor / 100  }
+    time { 40.m * params.batch * mem_factor / 100  }
 
     input:
     path bin_dir from ch_bin
