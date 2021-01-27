@@ -191,7 +191,6 @@ if (params.part == 1) {
   process step2 {
     tag "id:${name}-file:${file_path}-index:${index_path}"
     publishDir "results/", mode: "move"
-    errorStrategy 'ignore'
     echo true
 
     input:
@@ -246,7 +245,6 @@ if (params.part == 3) {
   process logR_ratio {
     tag "${sample_name}"
     echo true
-    errorStrategy 'ignore'
     publishDir "results/", mode: "move"
     memory { 1.GB * params.batch * mem_factor / 100 }
     time { 20.m * params.batch * mem_factor / 100  }
