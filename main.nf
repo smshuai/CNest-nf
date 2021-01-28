@@ -20,7 +20,7 @@ def helpMessage() {
       --cov
 
     Optional arguments:
-      --wgs           [flag] indicate if this is WGS (for MEM calculation)
+      --wgs           [int] indicate the memory factor for WGS
       --test          [flag] test mode (use only 5 samples)
       --help          [flag] Show help messages
 
@@ -31,7 +31,7 @@ def helpMessage() {
 if (params.help) exit 0, helpMessage()
 
 if (params.wgs) {
-  mem_factor = 2
+  mem_factor = params.wgs
 } else {
   mem_factor = 1
 }
