@@ -65,7 +65,7 @@ if (params.cordir) ch_cor = Channel.value(file(params.cordir))
 if (params.binlist) {
   Channel
     .fromPath(params.binlist)
-    .splitText()
+    .splitText() { it.trim() }
     .collect()
     .set {ch_bins}
 }
