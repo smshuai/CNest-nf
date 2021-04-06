@@ -12,6 +12,12 @@ def helpMessage() {
       --project       [string] Name of the project
       --part          [int] Part of the workflow to run. One of [1, 2, 3, 4]
 
+
+    Part 1 arguments:
+      --ref           [file] Reference FASTA
+      --indexb        [file] Index in BED format for fast counting
+      --design        [file] A CSV file with header and three columns (name,cram,crai)
+
     Part 4 arguments:
       --rbindir
       --cordir
@@ -100,6 +106,7 @@ if (!params.samples && params.binlist) {
 
 // Helper files
 if (params.index) ch_index = Channel.value(file(params.index))
+if (params.indexb) ch_index_bed = Channel.value(file(params.indexb))
 if (params.gender) ch_gender = Channel.value(file(params.gender))
 if (params.cov) ch_cov = Channel.value(file(params.cov))
 
@@ -140,9 +147,8 @@ if (params.binlist) {
                                 Main parts
 ================================================================================
 */
-
-if (params.part == 1) {
-  ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
+if (params.part == 0) {
+    ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
   process step0 {
     tag "${params.project}"
     echo true
@@ -177,17 +183,18 @@ if (params.part == 1) {
     file(bed) from ch_bed
 
     output: 
-    file ("${params.project}") into ch_proj
-    path "${params.project}/index_tab.txt"
-    path "${params.project}/index.txt"
-    path "${params.project}/index.bed"
+    path "${params.project}/index_tab.txt" into ch_index_tab
+    path "${params.project}/index.txt" into ch_index
+    path "${params.project}/index.bed" into ch_index_bed
 
     script:
     """
     cnest.py step1 --project ${params.project} --bed ${bed}
     """
   }
+}
 
+if (params.part == 1) {
   process step2 {
     tag "id:${name}-file:${file_path}-index:${index_path}"
     publishDir "results/", mode: "move"
@@ -196,7 +203,7 @@ if (params.part == 1) {
     input:
     set val(name), file(file_path), file(index_path) from ch_files_sets
     file("genome.fa") from ch_ref
-    file(project) from ch_proj
+    path "${params.project}/index.bed" from ch_index_bed
 
     output:
     path "${params.project}/bin/$name"
@@ -204,10 +211,12 @@ if (params.part == 1) {
     script:
     if (params.test)
       """
+      mkdir -p ${params.project}/tmp/ ${params.project}/bin/
       cnest.py --debug step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
       """
     else
       """
+      mkdir -p ${params.project}/tmp/ ${params.project}/bin/
       cnest.py step2 --project ${params.project} --sample ${name} --input ${file_path} --fasta genome.fa --fast
       """
   }

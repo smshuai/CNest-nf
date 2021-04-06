@@ -13,7 +13,7 @@ then
   rm -r ./work/
 fi
 
-nextflow run ../part1.nf --project test_proj --design design.csv  --ref $ref_path 
+nextflow run ../main.nf --part 1 --project test_proj --design design.csv --ref $ref_path --indexb ./results/test_proj/index.bed
 
 nextflow run ../part2.nf --binDir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
 
