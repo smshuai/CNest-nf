@@ -18,6 +18,18 @@ def helpMessage() {
       --indexb        [file] Index in BED format for fast counting
       --design        [file] A CSV file with header and three columns (name,cram,crai)
 
+    Part 2 arguments:
+      --index         [file] Index in tab format (index_tab.txt)
+      --bindir        [path] Path to the directory of all bin files
+      --binlist       [file] A txt file with paths to all bin files (one per row)
+
+    Part 3 arguments:
+      --index         [file] Index in tab format (index_tab.txt)
+      --bindir        [path] Path to the directory of all bin files
+      --gender        [file] Gender file from part 2
+      --batch         [int]  Batch size for references
+      --samples       [file] Samples to process
+
     Part 4 arguments:
       --rbindir
       --cordir
