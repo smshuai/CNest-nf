@@ -18,6 +18,13 @@ executor=lsf # set this to slurm for SLURM HPCs
 
 ##########
 
+# Part 0 : Make index
+nextflow run -with-report p1_report.html -with-trace p1_trace  -profile $executor \
+    -r main -latest smshuai/CNest-nf \
+    --part 0 \
+    --project $project_name \
+    --bed $bed_path
+
 # Part 1 : Bait read count
 nextflow run -with-report p1_report.html -with-trace p1_trace  -profile $executor \
     -r main -latest smshuai/CNest-nf \
@@ -25,7 +32,7 @@ nextflow run -with-report p1_report.html -with-trace p1_trace  -profile $executo
     --project $project_name \
     --design $design_file \
     --ref $ref_path \
-    --bed $bed_path
+    --indexb ./results/$project_name/index.bed
 
 # Part 2 : Gender QC
 nextflow run -with-report p2_report.html -with-trace p2_trace -profile $executor \

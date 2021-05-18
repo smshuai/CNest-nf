@@ -160,7 +160,8 @@ if (params.binlist) {
 ================================================================================
 */
 if (params.part == 0) {
-    ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
+  ch_bedgz = Channel.value(file("$baseDir/data/hg38.1kb.baits.bed.gz"))
+
   process step0 {
     tag "${params.project}"
     echo true
