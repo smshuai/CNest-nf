@@ -17,6 +17,6 @@ nextflow run ../main.nf --part 0 --project test_proj --bed ./test.bed
 
 nextflow run ../main.nf --part 1 --project test_proj --design design.csv --ref $ref_path --indexb ./results/test_proj/index.bed
 
-nextflow run ../main.nf --part 2 --bindir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
+# nextflow run ../main.nf --part 2 --bindir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt
 
-nextflow run ../main.nf --part 3 --project test_proj --bindir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt --gender ./results/gender_classification.txt
+# nextflow run ../main.nf --part 3 --project test_proj --bindir ./results/test_proj/bin --index ./results/test_proj/index_tab.txt --gender ./results/gender_classification.txt
