@@ -63,7 +63,7 @@ if (params.bed) ch_bed = Channel.value(file(params.bed))
 if (params.ref) ch_ref = Channel.value(file(params.ref))
 if (params.design) {
   Channel.fromPath(params.design)
-    .splitCsv(sep: ',', skip: 1)
+    .splitCsv(sep: ',', skip: params.skip_lines)
     .map { name, file_path, index_path -> [ name, file(file_path), file(index_path) ] }
     .set { ch_files_sets }
 }
