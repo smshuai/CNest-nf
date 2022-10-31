@@ -5,9 +5,9 @@ def helpMessage() {
     log.info"""
     Usage:
     The typical command for running the pipeline is as follows:
-    
-    nextflow run main.nf --project test --part 4 
-    
+
+    nextflow run main.nf --project test --part 4
+
     Mandatory arguments:
       --project       [string] Name of the project
       --part          [int] Part of the workflow to run. One of [1, 2, 3, 4]
@@ -46,6 +46,7 @@ def helpMessage() {
 }
 
 // Show help message
+params.mode = 'copy'
 if (params.help) exit 0, helpMessage()
 
 if (params.wgs) {
@@ -137,10 +138,10 @@ if (params.binlist) {
 
       input:
         path bins from ch_bins
-      
+
       output:
         file ("bin") into ch_bin
-      
+
       shell:
       '''
       ls ./ > all_files
@@ -189,13 +190,13 @@ if (params.part == 0) {
   // Step1 create work directory
   process step1 {
     tag "${params.project}"
-    publishDir "results/", mode: "copy", pattern: "${params.project}/index*"
+    publishDir "results/", mode: "${params.mode}", pattern: "${params.project}/index*"
     echo true
 
-    input: 
+    input:
     file(bed) from ch_bed
 
-    output: 
+    output:
     path "${params.project}/index_tab.txt" into ch_index_tab
     path "${params.project}/index.txt" into ch_index
     path "${params.project}/index.bed" into ch_index_bed
@@ -210,7 +211,7 @@ if (params.part == 0) {
 if (params.part == 1) {
   process step2 {
     tag "id:${name}-file:${file_path}-index:${index_path}"
-    publishDir "results/", mode: "move"
+    publishDir "results/", mode: "${params.mode}"
     echo true
 
     input:
@@ -239,7 +240,7 @@ if (params.part == 2) {
 
   process gender_qc {
     echo true
-    publishDir "results/", mode: "move"
+    publishDir "results/", mode: "${params.mode}"
     time '10h'
 
     input:
@@ -267,7 +268,7 @@ if (params.part == 3) {
   process logR_ratio {
     tag "${sample_name}"
     echo true
-    publishDir "results/", mode: "move"
+    publishDir "results/", mode: "${params.mode}"
     memory { 1.GB * params.batch * mem_factor / 100 }
     time { 40.m * params.batch * mem_factor / 100  }
 
@@ -302,7 +303,7 @@ if (params.part == 4){
   process hmm_call {
     tag "${sample_name}"
     echo true
-    publishDir "results/", mode: "move"
+    publishDir "results/", mode: "${params.mode}"
     memory { 5.GB * params.batch * mem_factor / 100 }
     time { 40.m * params.batch * mem_factor / 100  }
 
